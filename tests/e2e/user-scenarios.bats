@@ -1472,4 +1472,91 @@ EOF
     echo "✓ AI attribution successfully preserved after conflict resolution during rebase" >&3
 }
 
-
+@test "Attribution is correct after AI deleted it's own lines from previous commit" {
+    
+    # COMMIT 1: AI creates initial content (3 lines)
+    cat > data.txt <<'EOF'
+Base Line 1
+Base Line 2
+Base Line 3
+EOF
+    git add data.txt
+    git commit -m "Base commit"
+    
+    cat > data.txt <<'EOF'
+Base Line 1
+Base Line 2
+AI: Line 1
+AI: Line 2
+AI: Line 3
+Base Line 3
+EOF
+    git-ai checkpoint mock_ai data.txt
+    git add data.txt
+    git commit -m "Commit 1: AI adds 3 lines"
+    
+    # COMMIT 2: Human adds 2 lines, then AI deletes 1 of its own and adds 2 new lines
+    
+    # Human adds 2 lines
+    cat > data.txt <<'EOF'
+Base Line 1
+Base Line 2
+AI: Line 1
+AI: Line 2
+AI: Line 3
+Human: Line 1
+Human: Line 2
+Base Line 3
+EOF
+    git-ai checkpoint  # Human added 2 lines
+    
+    # AI deletes one of its own lines (AI: Line 2) and adds 2 new lines
+    cat > data.txt <<'EOF'
+Base Line 1
+Base Line 2
+AI: Line 1
+AI: Line 3
+Human: Line 1
+Human: Line 2
+AI: New Line 1
+AI: New Line 2
+Base Line 3
+EOF
+    git-ai checkpoint mock_ai data.txt  # AI deleted 1 of its own, added 2 new
+    
+    git add data.txt
+    git commit -m "Commit 2: Human adds 2, AI deletes 1 and adds 2"
+    commit2_sha=$(git rev-parse HEAD)
+    
+    # Get stats for Commit 2
+    stats_commit2=$(get_stats_json "$commit2_sha")
+    echo "=== Commit 2 Stats ===" >&3
+    echo "$stats_commit2" >&3
+    
+    # Expected: Human added 2, AI added 2, AI deleted 1 of its own
+    expected_json='{
+        "human_additions": 2,
+        "mixed_additions": 0,
+        "ai_additions": 2,
+        "ai_accepted": 2,
+        "total_ai_additions": 2,
+        "total_ai_deletions": 1,
+        "time_waiting_for_ai": 0,
+        "git_diff_deleted_lines": 1,
+        "git_diff_added_lines": 4,
+        "tool_model_breakdown": {
+            "mock_ai::unknown": {
+                "ai_additions": 2,
+                "mixed_additions": 0,
+                "ai_accepted": 2,
+                "total_ai_additions": 2,
+                "total_ai_deletions": 1,
+                "time_waiting_for_ai": 0
+            }
+        }
+    }'
+    
+    compare_json "$expected_json" "$stats_commit2" "Commit 2 stats show incorrect attribution" || return 1
+    
+    echo "✓ Stats correctly show human_additions: 2, ai_additions: 2" >&3
+}
