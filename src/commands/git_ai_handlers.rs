@@ -157,8 +157,8 @@ fn print_help() {
     eprintln!("  git-path           Print the path to the underlying git executable");
     eprintln!("  upgrade            Check for updates and install if available");
     eprintln!("    --force               Reinstall latest version even if already up to date");
-    eprintln!("  enable             Enable git-ai (renames git.disabled back to git)");
-    eprintln!("  disable            Disable git-ai (renames git to git.disabled)");
+    eprintln!("  enable             Enable proxying of git commands to git-ai");
+    eprintln!("  disable            Disable proxying of git commands to git-ai");
     eprintln!("  version, -v, --version     Print the git-ai version");
     eprintln!("  help, -h, --help           Show this help message");
     eprintln!("");

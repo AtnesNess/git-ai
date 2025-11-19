@@ -152,7 +152,7 @@ pub fn enable_git_ai() -> Result<(), GitAiError> {
     
     if !git_disabled.exists() {
         return Err(GitAiError::Generic(
-            "git-ai is already enabled (git.disabled not found)".to_string(),
+            "git-ai is already enabled".to_string(),
         ));
     }
     
@@ -172,13 +172,13 @@ pub fn disable_git_ai() -> Result<(), GitAiError> {
     
     if !git_path.exists() {
         return Err(GitAiError::Generic(
-            "git-ai is already disabled (git binary not found)".to_string(),
+            "git-ai is already disabled".to_string(),
         ));
     }
     
     if git_disabled.exists() {
         return Err(GitAiError::Generic(
-            "git-ai is already disabled (git.disabled already exists)".to_string(),
+            "git-ai is already disabled".to_string(),
         ));
     }
     
