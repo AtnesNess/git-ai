@@ -13,13 +13,17 @@ fn is_debug_enabled() -> bool {
         cfg!(debug_assertions)
             || std::env::var("GIT_AI_DEBUG").unwrap_or_default() == "1"
             || std::env::var("GIT_AI_DEBUG_PERFORMANCE").unwrap_or_default() == "1"
+            || std::env::var("GIT_TRACE").unwrap_or_default() == "1"
     })
 }
 
 fn is_debug_performance_enabled() -> bool {
     is_debug_enabled()
         && *DEBUG_PERFORMANCE_ENABLED
-            .get_or_init(|| std::env::var("GIT_AI_DEBUG_PERFORMANCE").unwrap_or_default() == "1")
+            .get_or_init(|| {
+                std::env::var("GIT_AI_DEBUG_PERFORMANCE").unwrap_or_default() == "1"
+                    || std::env::var("GIT_TRACE").unwrap_or_default() == "1"
+            })
 }
 
 pub fn debug_performance_log(msg: &str) {
@@ -31,7 +35,7 @@ pub fn debug_performance_log(msg: &str) {
 /// Debug logging utility function
 ///
 /// Prints debug messages with a colored prefix when debug assertions are enabled or when
-/// the `GIT_AI_DEBUG` environment variable is set to "1".
+/// the `GIT_AI_DEBUG`, `GIT_AI_DEBUG_PERFORMANCE`, or `GIT_TRACE` environment variable is set to "1".
 ///
 /// # Arguments
 ///
